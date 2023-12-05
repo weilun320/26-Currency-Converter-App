@@ -146,12 +146,3 @@ function hideContainer(container) {
   container.classList.remove("d-block");
   container.classList.add("d-none");
 }
-
-// Reset user's selection and input amount
-function resetConversion() {
-  fromCurrency.selectedIndex = "0";
-  toCurrency.selectedIndex = "0";
-  amountInput.value = "";
-  hideContainer(resultContainer);
-  hideContainer(errorMessage);
-}
