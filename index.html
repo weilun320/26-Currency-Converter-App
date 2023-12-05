@@ -22,7 +22,7 @@
           <div class="input-group mb-3">
             <label class="input-group-text" for="from-currency">From</label>
             <select class="form-select" id="from-currency">
-              <option selected>Choose...</option>
+              <option value="" selected>Choose...</option>
             </select>
           </div>
         </div>
@@ -30,18 +30,18 @@
           <div class="input-group mb-3">
             <label class="input-group-text" for="to-currency">To</label>
             <select class="form-select" id="to-currency">
-              <option selected>Choose...</option>
+              <option value="" selected>Choose...</option>
             </select>
           </div>
         </div>
       </div>
       <div class="mb-3">
         <label for="amount" class="form-label fw-bold fs-5">Amount</label>
-        <input type="text" class="form-control" id="amount" value="1.00">
+        <input type="text" class="form-control" id="amount" placeholder="1.00">
       </div>
-      <div class="mb-5" id="converted-amount">
-      </div>
-      <div class="text-center">
+      <div class="d-none text-danger" id="error-message"></div>
+      <div class="d-none fw-bold fs-5" id="result"></div>
+      <div class="text-center mt-5">
         <button type="button" class="me-2 btn btn-secondary" onclick="convertCurrency()">Convert</button>
         <button type="button" class="ms-2 btn btn-outline-secondary" onclick="resetConversion()">Reset</button>
       </div>
