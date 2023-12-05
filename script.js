@@ -62,7 +62,7 @@ function formatConvertedCurrency(convertedCurrencyData) {
   const toCurrency = convertedCurrencyData.new_currency;
   const toAmount = convertedCurrencyData.new_amount;
 
-  return `${fromAmount} ${fromCurrency} = ${toAmount} ${toCurrency}`;
+  return `${fromAmount.toFixed(2)} ${fromCurrency} = ${toAmount.toFixed(2)} ${toCurrency}`;
 }
 
 // Display converted currency
@@ -84,14 +84,13 @@ function convertCurrency() {
   const selectedToCurrency = toCurrency.value;
   const amount = amountInput.value;
 
-  // Hide erorr message and result container
-  hideContainer(resultContainer);
-  hideContainer(errorMessage);
-
   // Check if user's selection and input amount are valid
   if (!validateInput(selectedFromCurrency, selectedToCurrency, amount)) {
     return;
   }
+
+  // Hide erorr message container
+  hideContainer(errorMessage);
 
   // Set the URL for API request
   url = `https://currency-converter-by-api-ninjas.p.rapidapi.com/v1/convertcurrency?have=${selectedFromCurrency}&want=${selectedToCurrency}&amount=${amount}`;
@@ -100,8 +99,12 @@ function convertCurrency() {
 
 // Validate user's selection and input amount
 function validateInput(selectedFromCurrency, selectedToCurrency, amount) {
+  // Regex pattern for only digit and decimal
+  const regex = /^\d+\.?\d*$/;
   // Check if user has selected a currency to convert
   if (!selectedFromCurrency) {
+    // Hide erorr message container
+    hideContainer(resultContainer);
     errorMessage.innerHTML = "Please select a currency to convert from.";
     showContainer(errorMessage);
     return false;
@@ -109,13 +112,17 @@ function validateInput(selectedFromCurrency, selectedToCurrency, amount) {
   
   // Check if user has selected a currency to convert to
   if (!selectedToCurrency) {
+    // Hide erorr message container
+    hideContainer(resultContainer);
     errorMessage.innerHTML = "Please select a currency to convert to.";
     showContainer(errorMessage);
     return false;
   }
 
   // Check if user has entered a valid amount to convert
-  if (isNaN(parseFloat(amount)) || parseFloat(amount) < 0 || amount === "") {
+  if (!regex.test(amount)) {
+    // Hide erorr message container
+    hideContainer(resultContainer);
     errorMessage.innerHTML = "Please enter a valid amount.";
     showContainer(errorMessage);
     return false;
@@ -155,3 +162,35 @@ function resetConversion() {
   hideContainer(resultContainer);
   hideContainer(errorMessage);
 }
+
+// Handle input event listener and real-time conversion
+amountInput.addEventListener("input", (e) => {
+  if (e.target.value && fromCurrency.value && toCurrency.value) {
+    convertCurrency();
+  }
+  else {
+    hideContainer(resultContainer);
+    hideContainer(errorMessage);
+  }
+});
+
+// Only allow numbers and decimal
+amountInput.addEventListener("keydown", (e) => {
+  if (isNaN(e.key) && e.key !== "." && e.key !== "Backspace") {
+    e.preventDefault();
+  }
+});
+
+// Handle change event listener and make real-time conversion when user select different currencies
+fromCurrency.addEventListener("change", () => {
+  if (fromCurrency.value && toCurrency.value && amountInput.value) {
+    convertCurrency();
+  }
+});
+
+// Handle change event listener and make real-time conversion when user select different currencies
+toCurrency.addEventListener("change", () => {
+  if (toCurrency.value && fromCurrency.value && amountInput.value) {
+    convertCurrency();
+  }
+});
