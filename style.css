@@ -1,4 +1,19 @@
-html {
-  height: 100%;
-  width: 100%;
+.loader {
+  animation: rotation 1s linear infinite;
+  border: 5px solid #0d6efd;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 48px;
+  width: 48px;
 }
+
+@keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+} 

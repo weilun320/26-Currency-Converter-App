@@ -120,14 +120,16 @@ function formatExchangeRate(exchangeRateData1, exchangeRateData2) {
 }
 
 // Display converted currency
-function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {  
+function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {
+  resultContainer.innerHTML = `<span class="loader"></span>`;
+  showContainer(resultContainer);
+  
   getConversionData(selectedFromCurrency, selectedToCurrency, amount)
   .then(data => {
     const formattedConversion = formatConversion(data.conversionData);
     const formattedExchangeRate = formatExchangeRate(data.exchangeRateData1, data.exchangeRateData2);
 
     resultContainer.innerHTML = formattedConversion;
-    showContainer(resultContainer);
 
     exchangeRateContainer.innerHTML = formattedExchangeRate;
     showContainer(exchangeRateContainer);
