@@ -129,7 +129,12 @@ function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {
     const formattedConversion = formatConversion(data.conversionData);
     const formattedExchangeRate = formatExchangeRate(data.exchangeRateData1, data.exchangeRateData2);
 
-    resultContainer.innerHTML = formattedConversion;
+    if (amount === "0") {
+      hideContainer(resultContainer);
+    }
+    else {
+      resultContainer.innerHTML = formattedConversion;
+    }
 
     exchangeRateContainer.innerHTML = formattedExchangeRate;
     showContainer(exchangeRateContainer);
@@ -270,6 +275,10 @@ fromCurrency.addEventListener("change", () => {
     hideContainer(exchangeRateContainer);
     convertCurrency();
   }
+  else if (fromCurrency.value && toCurrency.value && !amountInput.value) {
+    hideContainer(exchangeRateContainer);
+    displayConversion(fromCurrency.value, toCurrency.value, "0");
+  }
 });
 
 // Handle change event listener and make real-time conversion when user select different currencies
@@ -277,5 +286,9 @@ toCurrency.addEventListener("change", () => {
   if (toCurrency.value && fromCurrency.value && amountInput.value) {
     hideContainer(exchangeRateContainer);
     convertCurrency();
+  }
+  else if (fromCurrency.value && toCurrency.value && !amountInput.value) {
+    hideContainer(exchangeRateContainer);
+    displayConversion(fromCurrency.value, toCurrency.value, "0");
   }
 });
