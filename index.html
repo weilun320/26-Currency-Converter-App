@@ -13,11 +13,11 @@
 
 <body>
   <div class="p-3 p-lg-5">
-    <div class="container">
-      <div class="mb-5">
-        <h1>Currency Converter App</h1>
-      </div>
-      <div class="row align-items-center mb-3">
+    <div class="container bg-dark-subtle rounded-top-3">
+      <h1 class="text-primary py-2 m-0">Currency Converter App</h1>
+    </div>
+    <div class="container border border-top-0 border-primary bg-light rounded-bottom-3">
+      <div class="row align-items-center pt-3 mb-3">
         <div class="col-auto">
           <label class="form-label" for="saved-currency-pair">Saved currency pair:</label>
         </div>
@@ -53,7 +53,7 @@
       <div class="d-none text-center" id="result"></div>
       <div class="d-none text-center text-secondary mb-3" id="exchange-rate"></div>
       <div class="d-none text-center" id="save-remove-pair"></div>
-      <div class="text-center mt-5">
+      <div class="text-center mt-5 mb-3">
         <button type="button" class="me-2 btn btn-secondary" onclick="convertCurrency()">Convert</button>
         <button type="button" class="ms-2 btn btn-outline-secondary" onclick="resetConversion()">Reset</button>
       </div>
