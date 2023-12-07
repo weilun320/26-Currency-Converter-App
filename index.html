@@ -17,6 +17,16 @@
       <div class="mb-5">
         <h1>Currency Converter App</h1>
       </div>
+      <div class="row align-items-center mb-3">
+        <div class="col-auto">
+          <label class="form-label" for="saved-currency-pair">Saved currency pair:</label>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <select class="form-select" id="saved-currency-pair">
+            <option value="" selected>Choose...</option>
+          </select>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-6">
           <div class="input-group mb-3">
@@ -39,9 +49,10 @@
         <label for="amount" class="form-label fw-bold fs-5">Amount</label>
         <input type="text" class="form-control" id="amount">
       </div>
-      <div class="d-none text-danger" id="error-message"></div>
-      <div class="d-none" id="result"></div>
-      <div class="d-none text-secondary" id="exchange-rate"></div>
+      <div class="d-none text-center text-danger" id="error-message"></div>
+      <div class="d-none text-center" id="result"></div>
+      <div class="d-none text-center text-secondary mb-3" id="exchange-rate"></div>
+      <div class="d-none text-center" id="save-remove-pair"></div>
       <div class="text-center mt-5">
         <button type="button" class="me-2 btn btn-secondary" onclick="convertCurrency()">Convert</button>
         <button type="button" class="ms-2 btn btn-outline-secondary" onclick="resetConversion()">Reset</button>

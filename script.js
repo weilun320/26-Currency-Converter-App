@@ -22,12 +22,16 @@ const amountInput = document.getElementById("amount");
 const resultContainer = document.getElementById("result");
 const errorMessage = document.getElementById("error-message");
 const exchangeRateContainer = document.getElementById("exchange-rate");
+const saveRemovePairContainer = document.getElementById("save-remove-pair");
+const savedCurrencyPair = document.getElementById("saved-currency-pair");
+let savedCurrencyPairs = [];
 let fromCurrencyValue;
 let toCurrencyValue;
 let exchangeRateData1;
 let exchangeRateData2;
 let timeoutId1;
 let timeoutId2;
+let saveRemoveTimeoutId;
 
 // Add option to browse for currency
 for (const currency of currencies) {
@@ -49,11 +53,12 @@ let url;
 const options = {
   method: 'GET',
   headers: {
-    'X-RapidAPI-Key': '8a78d0f160mshe607a9668d53c68p1f3e3ajsnd6267d263449',
+    'X-RapidAPI-Key': '8708f74f38msh76c07611bae4b5bp1f95bdjsn37aa337fc47e',
     'X-RapidAPI-Host': 'currency-converter-by-api-ninjas.p.rapidapi.com'
   }
 };
 
+// Change API url value according to user's input and selection
 function getUrl(value1, value2, amount) {
   if (amount) {
     return `https://currency-converter-by-api-ninjas.p.rapidapi.com/v1/convertcurrency?have=${value1}&want=${value2}&amount=${amount}`;
@@ -93,7 +98,7 @@ function formatConversion(conversionData) {
   const toAmount = conversionData.new_amount;
   const formattedData = `
     <p class="fs-5 fw-semibold mb-0">${fromAmount.toFixed(2)} ${fromCurrency} =</p>
-    <p class="fs-3 fw-bold text-primary">${toAmount.toFixed(2)} ${toCurrency}</p>
+    <p class="fs-1 fw-bold text-primary">${toAmount.toFixed(2)} ${toCurrency}</p>
   `;
 
   return formattedData;
@@ -121,6 +126,7 @@ function formatExchangeRate(exchangeRateData1, exchangeRateData2) {
 
 // Display converted currency
 function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {
+  // Display a spinner while fetching data from API
   resultContainer.innerHTML = `<span class="loader"></span>`;
   showContainer(resultContainer);
   
@@ -129,15 +135,21 @@ function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {
     const formattedConversion = formatConversion(data.conversionData);
     const formattedExchangeRate = formatExchangeRate(data.exchangeRateData1, data.exchangeRateData2);
 
-    if (amount === "0") {
-      hideContainer(resultContainer);
-    }
-    else {
-      resultContainer.innerHTML = formattedConversion;
-    }
-
+    resultContainer.innerHTML = formattedConversion;
     exchangeRateContainer.innerHTML = formattedExchangeRate;
     showContainer(exchangeRateContainer);
+
+    // Check if currency pair existed in array
+    if (!checkExistedCurrencyPair(selectedFromCurrency, selectedToCurrency)) {
+      // Display save button if pair not exist
+      saveRemovePairButton(true);
+    }
+    else {
+      // Display remove button if pair exist
+      saveRemovePairButton(false);
+    }
+    
+    showContainer(saveRemovePairContainer);
   })
   .catch(error => {
     resultContainer.innerHTML = "Error fetching conversion data";
@@ -148,11 +160,15 @@ function displayConversion(selectedFromCurrency, selectedToCurrency, amount) {
 function convertCurrency() {
   const selectedFromCurrency = fromCurrency.value;
   const selectedToCurrency = toCurrency.value;
-  const amount = amountInput.value;
+  let amount = amountInput.value;
 
   // Check if user's selection and input amount are valid
   if (!validateInput(selectedFromCurrency, selectedToCurrency, amount)) {
     return;
+  }
+
+  if (!amount) {
+    amount = "0";
   }
 
   // Hide erorr message container
@@ -167,9 +183,7 @@ function validateInput(selectedFromCurrency, selectedToCurrency, amount) {
   const regex = /^\d+.?\d*$/;
   // Check if user has selected a currency to convert
   if (!selectedFromCurrency) {
-    // Hide result and exchange rate container
-    hideContainer(resultContainer);
-    hideContainer(exchangeRateContainer);
+    hideAllContainer();
     errorMessage.innerHTML = "Please select a currency to convert from.";
     showContainer(errorMessage);
     return false;
@@ -177,9 +191,7 @@ function validateInput(selectedFromCurrency, selectedToCurrency, amount) {
   
   // Check if user has selected a currency to convert to
   if (!selectedToCurrency) {
-    // Hide result and exchange rate container
-    hideContainer(resultContainer);
-    hideContainer(exchangeRateContainer);
+    hideAllContainer();
     errorMessage.innerHTML = "Please select a currency to convert to.";
     showContainer(errorMessage);
     return false;
@@ -187,7 +199,7 @@ function validateInput(selectedFromCurrency, selectedToCurrency, amount) {
 
   // Check if user has entered a valid amount to convert
   if (!regex.test(amount) && amount) {
-    // Hide result and exchange rate container
+    // Hide result, save/remove container
     hideContainer(resultContainer);
     errorMessage.innerHTML = "Please enter a valid amount.";
     showContainer(errorMessage);
@@ -209,16 +221,108 @@ function hideContainer(container) {
   container.classList.add("d-none");
 }
 
+// Hide all container
+function hideAllContainer() {
+  hideContainer(resultContainer);
+  hideContainer(exchangeRateContainer);
+  hideContainer(saveRemovePairContainer);
+  hideContainer(errorMessage);
+}
+
 // Reset user's selection and input amount
 function resetConversion() {
   fromCurrency.selectedIndex = "0";
   toCurrency.selectedIndex = "0";
+  saveCurrencyPair.selectedIndex = "0";
   amountInput.value = "";
   fromCurrencyValue = null;
   toCurrencyValue = null;
   hideContainer(resultContainer);
   hideContainer(exchangeRateContainer);
+  hideContainer(saveRemovePairContainer);
   hideContainer(errorMessage);
+}
+
+// Show save or remove button
+function saveRemovePairButton(saveOrRemove) {
+  if (saveOrRemove) {
+    saveRemovePairContainer.classList.remove("text-danger");
+    saveRemovePairContainer.classList.add("text-success");
+    saveRemovePairContainer.innerHTML = `
+      <button class="btn" onclick="saveCurrencyPair('${fromCurrencyValue}', '${toCurrencyValue}')">Click to save currency pair</button>
+    `;
+  }
+  else {
+    saveRemovePairContainer.classList.remove("text-success");
+    saveRemovePairContainer.classList.add("text-danger");
+    saveRemovePairContainer.innerHTML = `
+      <button class="btn" onclick="removeCurrencyPair('${fromCurrencyValue}', '${toCurrencyValue}')">Click to remove currency pair</button>
+    `;
+  }
+}
+
+// Save currency pair
+function saveCurrencyPair(selectedFromCurrency, selectedToCurrency) {
+  // Add pair into array
+  savedCurrencyPairs.push({ selectedFromCurrency, selectedToCurrency });
+  // Show saved message
+  saveRemovePairContainer.innerHTML = "Currency pair saved.";
+
+  if (saveRemoveTimeoutId) {
+    clearTimeout(saveRemoveTimeoutId);
+  }
+
+  // Wait 3s and display remove currency pair button
+  saveRemoveTimeoutId = setTimeout(() => {
+    saveRemovePairButton(false);
+  }, 3000);
+  
+  loadSavedCurrencyPairs();
+}
+
+// Check for existed currency pair in array
+function checkExistedCurrencyPair(selectedFromCurrency, selectedToCurrency) {
+  return savedCurrencyPairs.find(pair => pair.selectedFromCurrency === selectedFromCurrency && pair.selectedToCurrency === selectedToCurrency);
+}
+
+// Load saved currency pairs
+function loadSavedCurrencyPairs() {
+  // Remove all option except for default option
+  for (let i = savedCurrencyPair.options.length; i > 0; i--) {
+    savedCurrencyPair.remove(i);
+  }
+
+  // Add saved currency pairs to select element
+  for (const currencyPair of savedCurrencyPairs) {
+    const option = document.createElement("option");
+    
+    option.value = currencyPair.selectedFromCurrency + " - " + currencyPair.selectedToCurrency;
+    option.text = currencyPair.selectedFromCurrency + " - " + currencyPair.selectedToCurrency;
+
+    savedCurrencyPair.add(option);
+  }
+}
+
+// Remove currency pair
+function removeCurrencyPair(selectedFromCurrency, selectedToCurrency) {
+  // Check if pair existed
+  if (checkExistedCurrencyPair(selectedFromCurrency, selectedToCurrency)) {
+    // Remove pair from currency pairs array
+    savedCurrencyPairs = savedCurrencyPairs.filter(pair => pair.selectedFromCurrency !== selectedFromCurrency || pair.selectedToCurrency !== selectedToCurrency);
+    // Show removed message
+    saveRemovePairContainer.innerHTML = "Currency pair removed.";
+
+    if (saveRemoveTimeoutId) {
+      clearTimeout(saveRemoveTimeoutId);
+    }
+
+    // Wait 3s and display save currency pair button
+    saveRemoveTimeoutId = setTimeout(() => {
+      saveRemovePairButton(true);
+    }, 3000);
+    
+    loadSavedCurrencyPairs();
+  }
 }
 
 // Handle input event listener and real-time conversion
@@ -234,9 +338,7 @@ amountInput.addEventListener("input", (e) => {
       hideContainer(resultContainer);
     }, 800);
   }
-
-  // Check if user has selected currencies and entered an amount
-  if (e.target.value && fromCurrency.value && toCurrency.value) {
+  else {
     if (timeoutId2) {
       clearTimeout(timeoutId2);
     }
@@ -244,26 +346,24 @@ amountInput.addEventListener("input", (e) => {
     // Wait for 800ms when user make changes to input then convert currency
     timeoutId2 = setTimeout(convertCurrency, 800);
   }
-  else {
-    hideContainer(resultContainer);
-    hideContainer(errorMessage);
-  }
 });
 
-// Only allow numbers and decimal
+// Handle keydown event listener for input field
 amountInput.addEventListener("keydown", (e) => {
   let containDecimal = false;
 
-  // Allow only one decimal input
+  // Check for decimal
   for (const value of amountInput.value) {
     if (value === ".") {
       containDecimal = true;
     }
   }
-  
+
+  // Only allow numbers and decimal
   if (isNaN(e.key) && e.key !== "." && e.key !== "Backspace") {
     e.preventDefault();
   }
+  // Allow only one decimal input
   else if (e.key === "." && containDecimal) {
     e.preventDefault();
   }
@@ -271,24 +371,48 @@ amountInput.addEventListener("keydown", (e) => {
 
 // Handle change event listener and make real-time conversion when user select different currencies
 fromCurrency.addEventListener("change", () => {
-  if (fromCurrency.value && toCurrency.value && amountInput.value) {
-    hideContainer(exchangeRateContainer);
-    convertCurrency();
-  }
-  else if (fromCurrency.value && toCurrency.value && !amountInput.value) {
-    hideContainer(exchangeRateContainer);
+  hideAllContainer();
+
+  savedCurrencyPair.selectedIndex = "0";
+
+  if (fromCurrency.value && toCurrency.value && !amountInput.value) {
     displayConversion(fromCurrency.value, toCurrency.value, "0");
+
+    return;
   }
+  
+  convertCurrency();
 });
 
 // Handle change event listener and make real-time conversion when user select different currencies
 toCurrency.addEventListener("change", () => {
-  if (toCurrency.value && fromCurrency.value && amountInput.value) {
-    hideContainer(exchangeRateContainer);
-    convertCurrency();
-  }
-  else if (fromCurrency.value && toCurrency.value && !amountInput.value) {
-    hideContainer(exchangeRateContainer);
+  hideAllContainer();
+
+  savedCurrencyPair.selectedIndex = "0";
+  
+  if (fromCurrency.value && toCurrency.value && !amountInput.value) {
     displayConversion(fromCurrency.value, toCurrency.value, "0");
+
+    return;
   }
+  
+  convertCurrency();
+});
+
+// Handle change event listener for saved currency pair
+savedCurrencyPair.addEventListener("change", () => {
+  if (!savedCurrencyPair.value) {
+    return;
+  }
+
+  hideAllContainer();
+
+  // Set selected currency pair
+  const selectedFromCurrency = savedCurrencyPair.value.split(" - ")[0];
+  const selectedToCurrency = savedCurrencyPair.value.split(" - ")[1];
+
+  fromCurrency.value = selectedFromCurrency;
+  toCurrency.value = selectedToCurrency;
+
+  convertCurrency();
 });
